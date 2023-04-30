@@ -1,0 +1,45 @@
+# Compose fileのバージョン指定
+version: '3'
+
+services:
+
+  db:
+    image: mysql:5.7
+    volumes:
+      - "./mysql:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel_db
+      MYSQL_USER: laravel_user
+      MYSQL_PASSWORD: laravel_pass
+      TZ: 'Asia/Tokyo'
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    links:
+      - db
+    ports:
+      - 8080:80
+    volumes:
+      - /sessions
+
+  # laravel
+  app:
+    # どのポートを開いて繋ぐか。下記はコンテナの80番ポートを開いて、ホストの80番につなぐ
+    ports:
+      - "8000:80"
+    # 先ほど作ったDockerfileを使って、コンテナをビルドするという指定
+    build: ./docker/app
+    # コンテナの名前を指定
+    container_name: laravel_app
+    # ローカルのディレクトリとコンテナ上のディレクトリのリンクを設定
+    # ./src は docker-composer.yml のディレクトリ直下にある src を設定している
+    # コンテナが作成されると src ディレクトリからコンテナの /var/www/html にアクセスすることができる
+    volumes:
+      - ./src:/var/www/html
+
